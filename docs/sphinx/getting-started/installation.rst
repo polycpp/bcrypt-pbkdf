@@ -1,9 +1,10 @@
 Installation
 ============
 
-bcrypt-pbkdf targets C++20 and builds with clang >= 14 or gcc >= 11. It depends
-only on the base `polycpp <https://github.com/enricohuang/polycpp>`_ library
-(and none).
+bcrypt-pbkdf targets C++20 and builds with clang >= 14 or gcc >= 11. It
+depends only on the base `polycpp <https://github.com/enricohuang/polycpp>`_
+library (which transitively links OpenSSL for SHA-512). It introduces no
+other runtime dependencies.
 
 CMake FetchContent (recommended)
 --------------------------------
@@ -24,8 +25,8 @@ Add the library to your ``CMakeLists.txt``:
    add_executable(my_app main.cpp)
    target_link_libraries(my_app PRIVATE polycpp::bcrypt_pbkdf)
 
-The first configure pulls ``polycpp`` transitively, so the build tree may be
-large. Pin ``GIT_TAG`` to a specific commit for reproducible builds.
+The first configure pulls ``polycpp`` transitively. Pin ``GIT_TAG`` to a
+specific commit for reproducible builds.
 
 Using a local clone
 -------------------
@@ -37,16 +38,12 @@ CMake to use them instead of fetching from GitHub:
 
    # Building this repo directly
    cmake -B build -G Ninja \
-       -DPOLYCPP_SOURCE_DIR=/path/to/polycpp
+       -DPOLYCPP_SOURCE_DIR=<polycpp checkout>
 
    # Consuming this repo through FetchContent
    cmake -B build -G Ninja \
-       -DFETCHCONTENT_SOURCE_DIR_POLYCPP=/path/to/polycpp \
-       -DFETCHCONTENT_SOURCE_DIR_POLYCPP_BCRYPT_PBKDF=/path/to/bcrypt-pbkdf
-
-This is the path local validation can use when testing a port beside a
-polycpp checkout - see ``tests/`` in the repo. Keep local checkout paths in
-command invocations and CI configuration, not committed CMake files.
+       -DFETCHCONTENT_SOURCE_DIR_POLYCPP=<polycpp checkout> \
+       -DFETCHCONTENT_SOURCE_DIR_POLYCPP_BCRYPT_PBKDF=<bcrypt-pbkdf checkout>
 
 Build options
 -------------
@@ -55,15 +52,8 @@ Build options
     Build the GoogleTest suite. Defaults to ``ON`` for standalone builds and
     ``OFF`` when consumed via FetchContent.
 
-``POLYCPP_IO``
-    ``asio`` (default) or ``libuv`` - inherited from polycpp.
-
-``POLYCPP_SSL_BACKEND``
-    ``boringssl`` (default) or ``openssl``.
-
-``POLYCPP_UNICODE``
-    ``icu`` (recommended) or ``builtin``. ICU enables the Intl surface that
-    several polycpp headers pull into their public signatures.
+``POLYCPP_BCRYPT_PBKDF_BUILD_EXAMPLES``
+    Build the runnable examples under ``examples/``. Defaults to ``OFF``.
 
 Verifying the install
 ---------------------
@@ -74,6 +64,6 @@ Verifying the install
    cmake --build build
    ctest --test-dir build --output-on-failure
 
-All tests should pass on a supported toolchain - if they do not, open an
+All tests should pass on a supported toolchain — if they do not, open an
 issue on the `repository <https://github.com/polycpp/bcrypt-pbkdf/issues>`_
 with the compiler version and the failing test name.

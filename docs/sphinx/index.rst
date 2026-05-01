@@ -1,37 +1,50 @@
 bcrypt-pbkdf
 ============
 
-**C++ companion port of bcrypt-pbkdf**
+**C++ companion port of the OpenBSD bcrypt-pbkdf key derivation function.**
 
-Generated planning documentation for the bcrypt-pbkdf companion library. Replace placeholder user pages as APIs, examples, and tests become real.
+``bcrypt-pbkdf`` derives a cryptographic key from a password and salt using
+the OpenBSD ``bcrypt_pbkdf`` construction (Blowfish + SHA-512). It is the key
+derivation function OpenSSH ``ssh-keygen`` uses to encrypt new-format private
+keys (the ``-----BEGIN OPENSSH PRIVATE KEY-----`` envelope).
 
 .. code-block:: cpp
 
-   #include <polycpp/bcrypt_pbkdf/bcrypt_pbkdf.hpp>
+   #include <polycpp/bcrypt_pbkdf.hpp>
+   #include <polycpp/buffer.hpp>
+
+   auto password = polycpp::Buffer::from("correct horse battery staple");
+   auto salt     = polycpp::Buffer::from("0123456789abcdef");
+   auto key      = polycpp::bcrypt_pbkdf::pbkdf(password, salt, 16, 48);
 
 .. grid:: 2
 
-   .. grid-item-card:: Drop-in familiarity
+   .. grid-item-card:: Byte-identical to upstream
       :margin: 1
 
-      Keep the C++ API close to the npm package where that improves migration, and record deliberate C++ adaptations in docs/divergences.md.
+      Reproduces the exact output of npm ``bcrypt-pbkdf@1.0.2`` for every
+      published test vector. Suitable for decrypting OpenSSH private keys
+      produced by ``ssh-keygen``.
 
    .. grid-item-card:: C++20 native
       :margin: 1
 
-      Header-only where possible, zero-overhead abstractions, ``constexpr``
-      and ``std::string_view`` throughout.
+      Synchronous typed API with ``polycpp::Buffer`` inputs and outputs.
+      No callbacks, no Promises, no global state — concurrent calls are
+      safe.
 
-   .. grid-item-card:: Tested
+   .. grid-item-card:: Fail-closed by design
       :margin: 1
 
-      The test plan starts from upstream tests and fixtures, then adds C++ integration and regression coverage before release.
+      Every invalid input throws a typed ``PbkdfError`` with a specific
+      ``PbkdfErrorCode`` before any keying material is computed. No
+      sentinel ``-1`` returns.
 
    .. grid-item-card:: Plays well with polycpp
       :margin: 1
 
-      Uses the same JSON value, error, and typed-event types as the rest of
-      the polycpp ecosystem - no impedance mismatch.
+      SHA-512 comes from ``polycpp::crypto`` (OpenSSL). Errors derive from
+      ``polycpp::Error``. Buffers are ``polycpp::Buffer``.
 
 Getting started
 ---------------
@@ -47,7 +60,7 @@ Getting started
    FetchContent_MakeAvailable(polycpp_bcrypt_pbkdf)
    target_link_libraries(my_app PRIVATE polycpp::bcrypt_pbkdf)
 
-:doc:`Installation <getting-started/installation>` | :doc:`Quickstart <getting-started/quickstart>` | :doc:`Tutorials <tutorials/index>` | :doc:`API reference <api/index>`
+:doc:`Installation <getting-started/installation>` | :doc:`Quickstart <getting-started/quickstart>` | :doc:`Guides <guides/index>` | :doc:`API reference <api/index>` | :doc:`Examples <examples/index>`
 
 .. toctree::
    :hidden:
@@ -55,12 +68,6 @@ Getting started
 
    getting-started/installation
    getting-started/quickstart
-
-.. toctree::
-   :hidden:
-   :caption: Tutorials
-
-   tutorials/index
 
 .. toctree::
    :hidden:

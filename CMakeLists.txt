@@ -24,6 +24,7 @@ FetchContent_MakeAvailable(polycpp)
 
 add_library(polycpp_bcrypt_pbkdf
     src/bcrypt_pbkdf.cpp
+    src/blowfish.cpp
 )
 target_link_libraries(polycpp_bcrypt_pbkdf PUBLIC polycpp)
 target_include_directories(polycpp_bcrypt_pbkdf PUBLIC
@@ -47,10 +48,19 @@ if(POLYCPP_BCRYPT_PBKDF_BUILD_TESTS)
     )
     FetchContent_MakeAvailable(googletest)
 
-    add_executable(polycpp_bcrypt_pbkdf_test_smoke tests/test_smoke.cpp)
-    target_link_libraries(polycpp_bcrypt_pbkdf_test_smoke PRIVATE polycpp::bcrypt_pbkdf GTest::gtest_main)
+    add_executable(polycpp_bcrypt_pbkdf_test_pbkdf tests/test_pbkdf.cpp)
+    target_link_libraries(polycpp_bcrypt_pbkdf_test_pbkdf PRIVATE polycpp::bcrypt_pbkdf GTest::gtest_main)
+
+    add_executable(polycpp_bcrypt_pbkdf_test_blowfish tests/test_blowfish.cpp)
+    target_link_libraries(polycpp_bcrypt_pbkdf_test_blowfish PRIVATE polycpp::bcrypt_pbkdf GTest::gtest_main)
+
+    add_executable(polycpp_bcrypt_pbkdf_test_errors tests/test_errors.cpp)
+    target_link_libraries(polycpp_bcrypt_pbkdf_test_errors PRIVATE polycpp::bcrypt_pbkdf GTest::gtest_main)
+
     include(GoogleTest)
-    gtest_discover_tests(polycpp_bcrypt_pbkdf_test_smoke)
+    gtest_discover_tests(polycpp_bcrypt_pbkdf_test_pbkdf)
+    gtest_discover_tests(polycpp_bcrypt_pbkdf_test_blowfish)
+    gtest_discover_tests(polycpp_bcrypt_pbkdf_test_errors)
 endif()
 
 option(POLYCPP_BCRYPT_PBKDF_BUILD_EXAMPLES "Build examples" OFF)
