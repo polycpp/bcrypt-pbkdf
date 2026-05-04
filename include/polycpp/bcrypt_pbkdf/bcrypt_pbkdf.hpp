@@ -42,8 +42,6 @@ inline constexpr std::size_t HASHSIZE = 32;
  * Matches upstream's check `keylen > out.byteLength * out.byteLength`
  * where `out.byteLength == HASHSIZE`. Inputs above this throw
  * `PbkdfError` with code `PbkdfErrorCode::KeylenTooLarge`.
- *
- * @see PbkdfErrorCode::KeylenTooLarge
  * @since 1.0.0
  */
 inline constexpr std::size_t MAX_KEYLEN = HASHSIZE * HASHSIZE;
@@ -53,8 +51,6 @@ inline constexpr std::size_t MAX_KEYLEN = HASHSIZE * HASHSIZE;
  *
  * Matches upstream's check `saltlen > (1 << 20)`. Inputs above this
  * throw `PbkdfError` with code `PbkdfErrorCode::SaltTooLarge`.
- *
- * @see PbkdfErrorCode::SaltTooLarge
  * @since 1.0.0
  */
 inline constexpr std::size_t MAX_SALTLEN = std::size_t{1} << 20;
@@ -135,10 +131,6 @@ inline constexpr std::size_t MAX_SALTLEN = std::size_t{1} << 20;
  *   auto key      = polycpp::bcrypt_pbkdf::pbkdf(password, salt, 16, 48);
  *   // key.data()[0..32) is the AES key; key.data()[32..48) is the IV.
  * @endcode
- *
- * @see PbkdfError
- * @see PbkdfErrorCode
- * @see bcryptHash
  * @since 1.0.0
  */
 polycpp::Buffer pbkdf(const polycpp::Buffer& password,
@@ -165,8 +157,6 @@ polycpp::Buffer pbkdf(const polycpp::Buffer& password,
  * @return A `polycpp::Buffer` of exactly `keylen` bytes.
  * @throws PbkdfError on invalid input. See the `Buffer` overload for
  *         the full table of error codes.
- *
- * @see pbkdf(const polycpp::Buffer&, const polycpp::Buffer&, std::uint32_t, std::uint32_t)
  * @since 1.0.0
  */
 polycpp::Buffer pbkdf(const std::string& password,
@@ -210,9 +200,6 @@ polycpp::Buffer pbkdf(const std::string& password,
  *   auto inner = polycpp::bcrypt_pbkdf::bcryptHash(sha2pass, sha2salt);
  *   // inner.length() == HASHSIZE
  * @endcode
- *
- * @see pbkdf
- * @see HASHSIZE
  * @since 1.0.0
  */
 polycpp::Buffer bcryptHash(const polycpp::Buffer& sha2pass,
