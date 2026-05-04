@@ -78,6 +78,12 @@ void bcryptHashRaw(const std::uint8_t* sha2pass,
         out[4 * i + 2] = static_cast<std::uint8_t>(cdata[i] >> 16);
         out[4 * i + 3] = static_cast<std::uint8_t>(cdata[i] >> 24);
     }
+
+    // cdata held the 32-byte bcrypt_hash output before we copied it to
+    // `out`; the copy in the caller's buffer is the legitimate output, but
+    // the local stack copy is a duplicate of keying material and worth
+    // scrubbing.
+    polycpp::ssl::secureZero(cdata.data(), cdata.size() * sizeof(std::uint32_t));
 }
 
 }  // namespace polycpp::bcrypt_pbkdf::detail
@@ -85,6 +91,27 @@ void bcryptHashRaw(const std::uint8_t* sha2pass,
 namespace polycpp::bcrypt_pbkdf {
 
 namespace {
+
+// RAII guard that scrubs a contiguous byte range when it goes out of scope.
+// Used so that sensitive intermediates (SHA-512 of the password, per-block
+// bcrypt_hash outputs) are wiped on both normal return and on exception
+// unwinding — for example if `polycpp::Buffer::alloc` or `sha512Bytes`
+// throws partway through `pbkdf`.
+class SecureScrubber {
+public:
+    SecureScrubber(void* data, std::size_t size) noexcept
+        : data_(data), size_(size) {}
+    ~SecureScrubber() noexcept {
+        polycpp::ssl::secureZero(data_, size_);
+    }
+    SecureScrubber(const SecureScrubber&) = delete;
+    SecureScrubber& operator=(const SecureScrubber&) = delete;
+    SecureScrubber(SecureScrubber&&) = delete;
+    SecureScrubber& operator=(SecureScrubber&&) = delete;
+private:
+    void* data_;
+    std::size_t size_;
+};
 
 // SHA-512 of `data` returned as a 64-byte byte array. Uses
 // `polycpp::crypto::createHash("sha512")` (OpenSSL-backed). Byte-identical to
@@ -168,10 +195,14 @@ polycpp::Buffer pbkdf(const polycpp::Buffer& password,
 
     polycpp::Buffer key = polycpp::Buffer::alloc(keylen);
 
-    // sha2pass = SHA-512(password)
+    // sha2pass = SHA-512(password). Scrub on scope exit (including
+    // exception unwinding) so the password digest does not linger on the
+    // stack.
     auto sha2pass = sha512Bytes(password.data(), password.length());
+    SecureScrubber sha2pass_guard(sha2pass.data(), sha2pass.size());
 
-    // countsalt = salt || 4-byte big-endian counter
+    // countsalt = salt || 4-byte big-endian counter. Not as sensitive as
+    // sha2pass (the salt is typically not secret), so no scrubbing.
     std::vector<std::uint8_t> countsalt(salt.length() + 4);
     std::memcpy(countsalt.data(), salt.data(), salt.length());
 
@@ -185,6 +216,8 @@ polycpp::Buffer pbkdf(const polycpp::Buffer& password,
 
     std::array<std::uint8_t, HASHSIZE> out_block{};
     std::array<std::uint8_t, HASHSIZE> tmpout{};
+    SecureScrubber out_block_guard(out_block.data(), out_block.size());
+    SecureScrubber tmpout_guard(tmpout.data(), tmpout.size());
 
     std::uint32_t remaining = keylen;
     for (std::uint32_t count = 1; remaining > 0; ++count) {
@@ -217,13 +250,8 @@ polycpp::Buffer pbkdf(const polycpp::Buffer& password,
         remaining -= i;
     }
 
-    // Scrub scratch buffers that held SHA-512(password) and intermediate
-    // round outputs. polycpp::ssl::secureZero delegates to OPENSSL_cleanse,
-    // which is documented not to be optimized away.
-    polycpp::ssl::secureZero(out_block.data(), out_block.size());
-    polycpp::ssl::secureZero(tmpout.data(), tmpout.size());
-    polycpp::ssl::secureZero(sha2pass.data(), sha2pass.size());
-
+    // Scratch buffers (sha2pass, tmpout, out_block) are scrubbed by their
+    // SecureScrubber guards on the way out of this scope.
     return key;
 }
 

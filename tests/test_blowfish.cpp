@@ -94,3 +94,20 @@ TEST(Blowfish, BcryptHashOutputLength) {
     auto out = polycpp::bcrypt_pbkdf::bcryptHash(empty64, empty64);
     EXPECT_EQ(out.length(), polycpp::bcrypt_pbkdf::HASHSIZE);
 }
+
+// Calling bcryptHash twice with identical inputs produces identical output.
+// Guards against accidental reliance on per-call state (it caught a real
+// bug shape in the upstream JS port: shared module-level BLF_J advancement
+// would have made consecutive bcryptHash calls produce different outputs).
+TEST(Blowfish, BcryptHashIsDeterministic) {
+    auto sha2pass = hexToBuffer(
+        "b109f3bbbc244eb82441917ed06d618b9008dd09b3befd1b5e07394c706a8bb9"
+        "80b1d7785e5976ec049b46df5f1326af5a2ea6d103fd07c95385ffab0cacbc86");
+    auto sha2salt = hexToBuffer(
+        "2e3fce77cf8c4c7478a96d207c1c39715892cac84a18cbec9b634f4bc22b390b"
+        "48cd30a4df2e7ebbaee65c346a662c5be2d12441322f7a4bac821a382c4af091");
+
+    auto a = polycpp::bcrypt_pbkdf::bcryptHash(sha2pass, sha2salt);
+    auto b = polycpp::bcrypt_pbkdf::bcryptHash(sha2pass, sha2salt);
+    EXPECT_EQ(bufferToHex(a), bufferToHex(b));
+}

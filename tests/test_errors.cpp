@@ -6,9 +6,12 @@
 
 #include <polycpp/bcrypt_pbkdf.hpp>
 #include <polycpp/buffer.hpp>
+#include <polycpp/core/error.hpp>
 
 #include <gtest/gtest.h>
 
+#include <cstring>
+#include <exception>
 #include <string>
 #include <vector>
 
@@ -118,4 +121,53 @@ TEST(Errors, ErrorCodeNamesAreReadable) {
                  "InvalidRounds");
     EXPECT_STREQ(polycpp::bcrypt_pbkdf::pbkdfErrorCodeName(PbkdfErrorCode::KeylenTooLarge),
                  "KeylenTooLarge");
+}
+
+// Exception inheritance: PbkdfError is catchable as polycpp::Error and as
+// std::exception. This is part of the API contract — generic logging code
+// that catches std::exception must see PbkdfError.
+TEST(Errors, PbkdfErrorIsCatchableAsPolycppError) {
+    auto password = polycpp::Buffer::from("password");
+    auto salt = polycpp::Buffer::from("salt");
+    bool caught = false;
+    try {
+        (void)polycpp::bcrypt_pbkdf::pbkdf(password, salt, 0, 32);
+    } catch (const polycpp::Error& e) {
+        caught = true;
+        EXPECT_NE(std::string(e.what()).find("rounds"), std::string::npos);
+    }
+    EXPECT_TRUE(caught);
+}
+
+TEST(Errors, PbkdfErrorIsCatchableAsStdException) {
+    auto password = polycpp::Buffer::from("password");
+    auto salt = polycpp::Buffer::from("salt");
+    bool caught = false;
+    try {
+        (void)polycpp::bcrypt_pbkdf::pbkdf(password, salt, 4, 0);
+    } catch (const std::exception& e) {
+        caught = true;
+        EXPECT_NE(std::string(e.what()).find("keylen"), std::string::npos);
+    }
+    EXPECT_TRUE(caught);
+}
+
+// Every PbkdfErrorCode has a non-empty message — useful for log lines and
+// guards against silent enum additions without a string mapping.
+TEST(Errors, EveryCodeHasReadableName) {
+    constexpr PbkdfErrorCode codes[] = {
+        PbkdfErrorCode::InvalidRounds,
+        PbkdfErrorCode::EmptyPassword,
+        PbkdfErrorCode::EmptySalt,
+        PbkdfErrorCode::EmptyKeylen,
+        PbkdfErrorCode::KeylenTooLarge,
+        PbkdfErrorCode::SaltTooLarge,
+        PbkdfErrorCode::InvalidHashInput,
+    };
+    for (auto code : codes) {
+        const char* name = polycpp::bcrypt_pbkdf::pbkdfErrorCodeName(code);
+        ASSERT_NE(name, nullptr);
+        EXPECT_GT(std::strlen(name), 0u);
+        EXPECT_STRNE(name, "Unknown");
+    }
 }

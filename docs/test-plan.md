@@ -39,6 +39,9 @@
 - `tests/test_errors.cpp`: `keylen > 1024` throws `PbkdfError` with code `KeylenTooLarge` (matches upstream `if (... keylen > out.byteLength * out.byteLength ... return -1;` where `out.byteLength == 32`).
 - `tests/test_errors.cpp`: `saltlen > 1<<20` throws `PbkdfError` with code `SaltTooLarge` (matches upstream `if (... saltlen > (1<<20) ... return -1;`).
 - `tests/test_errors.cpp`: `bcryptHash` with non-64-byte inputs throws `PbkdfError` with code `InvalidHashInput`.
+- `tests/test_errors.cpp`: `PbkdfError` is catchable as `polycpp::Error` and as `std::exception`, ensuring generic logging code at the request boundary still sees the failure.
+- `tests/test_errors.cpp`: every `PbkdfErrorCode` enum value has a non-empty, non-`"Unknown"` name; this guards against silent enum additions without a string mapping.
+- `tests/test_blowfish.cpp`: `bcryptHash` produces identical output across two consecutive invocations on the same inputs, guarding against accidental reliance on shared per-call state.
 - `tests/test_pbkdf.cpp`: byte-preserving output — the derived key must exactly match the upstream JS oracle for every vector, with no trailing-zero corruption or stride-off-by-one.
 - `tests/test_pbkdf.cpp`: every error case is asserted to throw before any output buffer is allocated; the catch block verifies that no partial buffer escapes.
 
@@ -88,7 +91,7 @@ cmake --build build -j$(nproc)
 (cd build && ctest --output-on-failure)
 ```
 
-Result: 27 tests pass, 0 fail (recorded by `ctest --output-on-failure`; total runtime ~7 s on the validation machine).
+Result: 31 tests pass, 0 fail (recorded by `ctest --output-on-failure`; total runtime ~7 s on the validation machine).
 
 Documentation build:
 
