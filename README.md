@@ -9,7 +9,7 @@ keys (`-----BEGIN OPENSSH PRIVATE KEY-----`).
 
 ## Status
 
-Port version: `0.1.0`
+Port version: `1.0.0`
 
 Initial port based on upstream version: `1.0.2`
 

@@ -25,6 +25,7 @@ namespace polycpp::bcrypt_pbkdf {
  * @see pbkdf
  * @see bcryptHash
  * @see pbkdfErrorCodeName
+ * @since 1.0.0
  */
 enum class PbkdfErrorCode {
     /**
@@ -79,6 +80,7 @@ enum class PbkdfErrorCode {
  * @endcode
  *
  * @see PbkdfErrorCode
+ * @since 1.0.0
  */
 const char* pbkdfErrorCodeName(PbkdfErrorCode code) noexcept;
 
@@ -123,6 +125,7 @@ const char* pbkdfErrorCodeName(PbkdfErrorCode code) noexcept;
  *
  * @see PbkdfErrorCode
  * @see pbkdfErrorCodeName
+ * @since 1.0.0
  */
 class PbkdfError : public polycpp::Error {
 public:

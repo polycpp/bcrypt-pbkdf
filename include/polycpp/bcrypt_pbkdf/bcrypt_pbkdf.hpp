@@ -15,6 +15,8 @@ namespace polycpp::bcrypt_pbkdf {
  * Same value as upstream `bcrypt-pbkdf`'s `BLOCKS` export. Exposed so
  * callers writing parity tests can refer to the same constant the
  * algorithm uses internally.
+ *
+ * @since 1.0.0
  */
 inline constexpr std::size_t BLOCKS = 8;
 
@@ -25,6 +27,8 @@ inline constexpr std::size_t BLOCKS = 8;
  * `bcryptHash` step always emits exactly this many bytes; the outer
  * `pbkdf` driver stitches multiple `HASHSIZE`-byte blocks together to
  * reach the requested `keylen`.
+ *
+ * @since 1.0.0
  */
 inline constexpr std::size_t HASHSIZE = 32;
 
@@ -36,6 +40,7 @@ inline constexpr std::size_t HASHSIZE = 32;
  * `PbkdfError` with code `PbkdfErrorCode::KeylenTooLarge`.
  *
  * @see PbkdfErrorCode::KeylenTooLarge
+ * @since 1.0.0
  */
 inline constexpr std::size_t MAX_KEYLEN = HASHSIZE * HASHSIZE;
 
@@ -46,6 +51,7 @@ inline constexpr std::size_t MAX_KEYLEN = HASHSIZE * HASHSIZE;
  * throw `PbkdfError` with code `PbkdfErrorCode::SaltTooLarge`.
  *
  * @see PbkdfErrorCode::SaltTooLarge
+ * @since 1.0.0
  */
 inline constexpr std::size_t MAX_SALTLEN = std::size_t{1} << 20;
 
@@ -123,6 +129,7 @@ inline constexpr std::size_t MAX_SALTLEN = std::size_t{1} << 20;
  * @see PbkdfError
  * @see PbkdfErrorCode
  * @see bcryptHash
+ * @since 1.0.0
  */
 polycpp::Buffer pbkdf(const polycpp::Buffer& password,
                       const polycpp::Buffer& salt,
@@ -152,6 +159,7 @@ polycpp::Buffer pbkdf(const polycpp::Buffer& password,
  *         the full table of error codes.
  *
  * @see pbkdf(const polycpp::Buffer&, const polycpp::Buffer&, std::uint32_t, std::uint32_t)
+ * @since 1.0.0
  */
 polycpp::Buffer pbkdf(const std::string& password,
                       const polycpp::Buffer& salt,
@@ -197,6 +205,7 @@ polycpp::Buffer pbkdf(const std::string& password,
  *
  * @see pbkdf
  * @see HASHSIZE
+ * @since 1.0.0
  */
 polycpp::Buffer bcryptHash(const polycpp::Buffer& sha2pass,
                            const polycpp::Buffer& sha2salt);

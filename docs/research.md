@@ -172,7 +172,7 @@
 
 ## v0 scope
 
-- port version: 0.1.0
+- port version: 1.0.0
 - versioning note: port version is independent from upstream versioning
 - supported APIs: `polycpp::bcrypt_pbkdf::pbkdf`, `polycpp::bcrypt_pbkdf::bcryptHash`, `polycpp::bcrypt_pbkdf::PbkdfError`, `polycpp::bcrypt_pbkdf::PbkdfErrorCode`, constants `BLOCKS` and `HASHSIZE`
 - unsupported APIs: none in the upstream surface; the C++ port covers every callable in `index.js` (the `pbkdf` driver and the `hash` inner step) plus both numeric constants
