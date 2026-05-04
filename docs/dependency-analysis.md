@@ -8,7 +8,7 @@
 - published npm artifact analyzed: yes — confirmed the published `index.js` and `package.json` are byte-identical to the Git source clone, no `dist/`, no `lib/`, no minification step
 - include dev dependencies: no
 - dependency source install used: `npm install --ignore-scripts` via the libgen analyzer with the package's lone runtime dependency (`tweetnacl@0.14.5`) installed in a temporary workspace
-- companion root checked: `/data/work/lib`
+- companion root checked: parent directory containing the polycpp companion checkouts
 
 ## Package entry metadata
 

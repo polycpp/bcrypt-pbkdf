@@ -40,7 +40,7 @@
 
 ## Upstream repo layout summary
 
-- Clone path used for analysis: `/data/work/lib/bcrypt-pbkdf/.tmp/upstream/node-bcrypt-pbkdf`
+- Clone path used for analysis: `.tmp/upstream/node-bcrypt-pbkdf` (relative to repo root)
 - Five files total at the repo root: `CONTRIBUTING.md`, `LICENSE`, `README.md`, `index.js`, `package.json`.
 - All algorithm code lives in `index.js` (~556 lines), structured as: Blowfish constructor with the standard P-array and four S-box tables, `encipher` / `decipher`, `expand0state` / `expandstate` (the bcrypt key-schedule expansion), `enc` / `dec`, the inner round function `bcrypt_hash`, and the outer `bcrypt_pbkdf` driver.
 - There is no `test/`, `tests/`, `spec/`, or `__tests__/` directory in the upstream repo; upstream ships zero tests.
@@ -94,8 +94,8 @@
 
 ## Polycpp ecosystem reuse analysis
 
-- polycpp core paths inspected: `/data/work/gitlab-workspace/polycpp/include/polycpp/buffer/buffer.hpp`, `/data/work/gitlab-workspace/polycpp/include/polycpp/crypto/crypto.hpp`, `/data/work/gitlab-workspace/polycpp/include/polycpp/core/error.hpp`, plus `polycpp/polycpp.hpp` to confirm public umbrella exports
-- polycpp capability snapshot: HEAD `7a8df099e2564ff55729a1d2121feb9a88501119` from `git -C /data/work/gitlab-workspace/polycpp rev-parse HEAD` on 2026-05-01
+- polycpp core paths inspected: `polycpp/include/polycpp/buffer/buffer.hpp`, `polycpp/include/polycpp/crypto/crypto.hpp`, `polycpp/include/polycpp/core/error.hpp`, `polycpp/include/polycpp/ssl/memory.hpp`, plus `polycpp/polycpp.hpp` to confirm public umbrella exports
+- polycpp capability snapshot: HEAD `7a8df099e2564ff55729a1d2121feb9a88501119` (recorded 2026-05-01)
 - transport/listener capability review: not applicable. `bcrypt-pbkdf` is a synchronous CPU-only key derivation function. It opens no sockets, accepts no connections, and exposes no listener primitives. TCP/Unix-path/adopted-handle/TLS server primitives in polycpp (`polycpp::io::TcpAcceptor`, `polycpp::io::PipeAcceptor`, `polycpp::tls::Server`) were searched for relevance and rejected because the package has no listener semantics to model.
 - polycpp core types/functions selected: `polycpp::Buffer` (for password, salt, derived-key inputs and outputs), `polycpp::Error` (base class for `polycpp::bcrypt_pbkdf::PbkdfError`), and `polycpp::crypto::createHash("sha512")` plus `Hash::update(Buffer)` and `Hash::digestBuffer()` for the inner SHA-512 step.
 - polycpp core types/functions rejected: `polycpp::String` is rejected because the public API takes byte-preserving binary inputs, not UTF-16-aware strings — passwords frequently contain non-text bytes when feeding through ssh-keygen. `polycpp::JsonValue`/`JsonObject` are rejected because there is no dynamic JSON shape in the API. `polycpp::Date` is rejected because no time fields exist. `polycpp::events::EventEmitter` is rejected because the API is single-shot synchronous. `polycpp::Promise` is rejected because the work is short and CPU-local for the parameter ranges OpenSSH actually uses (16-32 rounds, 32-64-byte keys); upstream itself is synchronous.
@@ -149,7 +149,7 @@
 - binary payload type-mapping policy, if protocol client: not applicable. Inputs and outputs are byte buffers; the only mapping is `polycpp::Buffer <-> uint8_t*`. The output is byte-preserving and never decoded as text.
 - stateful parser/session-state policy, if protocol client/server: not applicable. The implementation has internal state during a single call (the Blowfish P-array, S-boxes, and `BLF_J` keystream pointer). All state is local to a single `pbkdf` invocation; there is no cross-call session state.
 - server/listener response writer matrix, if protocol server surface exists: not applicable.
-- key, secret, credential, or user-controlled input handling: passwords and salts are treated as opaque byte buffers. They are never logged, serialized, or copied beyond the immediate algorithm. Internal `sha2pass`, `sha2salt`, `tmpout`, and Blowfish state are stack-allocated where practical and zeroed on destruction via a small private RAII clearer (`detail::SecureZero`). Output `polycpp::Buffer` is returned to the caller; we do not retain a copy.
+- key, secret, credential, or user-controlled input handling: passwords and salts are treated as opaque byte buffers. They are never logged, serialized, or copied beyond the immediate algorithm. Internal `sha2pass`, `tmpout`, and `out_block` scratch buffers are stack-allocated and scrubbed at the end of `pbkdf` via `polycpp::ssl::secureZero`, which delegates to `OPENSSL_cleanse` and is documented not to be elided by the optimizer. Output `polycpp::Buffer` is returned to the caller; we do not retain a copy.
 - misuse cases that must be tested: `rounds = 0` (must throw, not silently succeed); `keylen = 0` (must throw); `keylen > 1024` (must throw); empty password (must throw); empty salt (must throw); same (password, salt, rounds, keylen) must produce byte-identical output across runs (determinism); altering one byte of the salt must produce a fully different output (non-correlated bytes); concurrent invocations from multiple threads must each produce the correct output (no shared mutable state). Each of these is covered by a test in `tests/test_errors.cpp` or `tests/test_pbkdf.cpp`.
 
 ## Core use cases

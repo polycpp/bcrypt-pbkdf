@@ -128,8 +128,8 @@ Legend:
 
 ## Public Release
 
-- [ ] production-grade quality confirmed
-- [ ] public documentation ready
-- [ ] public docs do not contain local absolute paths
-- [ ] `python3 docs/build.py` passes
+- [x] production-grade quality confirmed
+- [x] public documentation ready
+- [x] public docs do not contain local absolute paths
+- [x] `python3 docs/build.py` passes
 - [ ] GitHub repo visibility changed to public

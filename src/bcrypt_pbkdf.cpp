@@ -4,6 +4,7 @@
 
 #include <polycpp/buffer.hpp>
 #include <polycpp/crypto.hpp>
+#include <polycpp/ssl/memory.hpp>
 
 #include <algorithm>
 #include <array>
@@ -216,11 +217,12 @@ polycpp::Buffer pbkdf(const polycpp::Buffer& password,
         remaining -= i;
     }
 
-    // Best-effort scrub of stack scratch buffers. The compiler may elide
-    // these stores; this is a habit, not a guarantee.
-    std::memset(out_block.data(), 0, out_block.size());
-    std::memset(tmpout.data(), 0, tmpout.size());
-    std::memset(sha2pass.data(), 0, sha2pass.size());
+    // Scrub scratch buffers that held SHA-512(password) and intermediate
+    // round outputs. polycpp::ssl::secureZero delegates to OPENSSL_cleanse,
+    // which is documented not to be optimized away.
+    polycpp::ssl::secureZero(out_block.data(), out_block.size());
+    polycpp::ssl::secureZero(tmpout.data(), tmpout.size());
+    polycpp::ssl::secureZero(sha2pass.data(), sha2pass.size());
 
     return key;
 }

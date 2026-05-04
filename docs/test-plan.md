@@ -81,13 +81,14 @@ node -e 'const m = require("./index.js"); ...'
 Build and test commands run:
 
 ```bash
-cd /data/work/lib/bcrypt-pbkdf
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DFETCHCONTENT_SOURCE_DIR_POLYCPP=/data/work/gitlab-workspace/polycpp
+# from the repo root
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+    -DPOLYCPP_SOURCE_DIR=<polycpp checkout>
 cmake --build build -j$(nproc)
 (cd build && ctest --output-on-failure)
 ```
 
-Result: 27 tests pass, 0 fail (recorded by `ctest --output-on-failure`; total runtime ~6.9 s on the validation machine).
+Result: 27 tests pass, 0 fail (recorded by `ctest --output-on-failure`; total runtime ~7 s on the validation machine).
 
 Documentation build:
 
@@ -95,4 +96,4 @@ Documentation build:
 python3 docs/build.py
 ```
 
-Result: docs build runs `doxygen Doxyfile` and `sphinx-build -b html -W --keep-going` to completion with zero warnings. (Recorded by `python3 /data/work/libgen/scripts/check-port-validation.py --run-docs-build /data/work/lib/bcrypt-pbkdf`.)
+Result: docs build runs `doxygen Doxyfile` and `sphinx-build -b html -W --keep-going` to completion with zero warnings.
