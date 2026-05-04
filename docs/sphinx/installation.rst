@@ -31,8 +31,8 @@ specific commit for reproducible builds.
 Using a local clone
 -------------------
 
-If you already have bcrypt-pbkdf and polycpp checked out side by side, tell
-CMake to use them instead of fetching from GitHub:
+If you already have bcrypt-pbkdf and polycpp checked out side by side,
+tell CMake to use them instead of fetching from GitHub:
 
 .. code-block:: bash
 
@@ -49,8 +49,8 @@ Build options
 -------------
 
 ``POLYCPP_BCRYPT_PBKDF_BUILD_TESTS``
-    Build the GoogleTest suite. Defaults to ``ON`` for standalone builds and
-    ``OFF`` when consumed via FetchContent.
+    Build the GoogleTest suite. Defaults to ``ON`` for standalone builds
+    and ``OFF`` when consumed via FetchContent.
 
 ``POLYCPP_BCRYPT_PBKDF_BUILD_EXAMPLES``
     Build the runnable examples under ``examples/``. Defaults to ``OFF``.

@@ -44,45 +44,21 @@ keys (the ``-----BEGIN OPENSSH PRIVATE KEY-----`` envelope).
       :margin: 1
 
       SHA-512 comes from ``polycpp::crypto`` (OpenSSL). Errors derive from
-      ``polycpp::Error``. Buffers are ``polycpp::Buffer``.
+      ``polycpp::Error``. Buffers are ``polycpp::Buffer``. Sensitive
+      scratch is wiped via ``polycpp::ssl::secureZero``.
 
-Getting started
----------------
+What's here
+-----------
 
-.. code-block:: bash
-
-   # With FetchContent (recommended)
-   FetchContent_Declare(
-       polycpp_bcrypt_pbkdf
-       GIT_REPOSITORY https://github.com/polycpp/bcrypt-pbkdf.git
-       GIT_TAG        master
-   )
-   FetchContent_MakeAvailable(polycpp_bcrypt_pbkdf)
-   target_link_libraries(my_app PRIVATE polycpp::bcrypt_pbkdf)
-
-:doc:`Installation <getting-started/installation>` | :doc:`Quickstart <getting-started/quickstart>` | :doc:`Guides <guides/index>` | :doc:`API reference <api/index>` | :doc:`Examples <examples/index>`
+- :doc:`installation` — pull the library into your CMake build.
+- :doc:`usage` — derive a key, decrypt an OpenSSH private key, handle
+  errors, and the performance and threading model.
+- :doc:`api/index` — every public function, constant, type, and enum
+  value, generated from the Doxygen comments in the public headers.
 
 .. toctree::
    :hidden:
-   :caption: Getting started
 
-   getting-started/installation
-   getting-started/quickstart
-
-.. toctree::
-   :hidden:
-   :caption: How-to guides
-
-   guides/index
-
-.. toctree::
-   :hidden:
-   :caption: API reference
-
+   installation
+   usage
    api/index
-
-.. toctree::
-   :hidden:
-   :caption: Examples
-
-   examples/index
