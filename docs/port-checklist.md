@@ -132,4 +132,4 @@ Legend:
 - [x] public documentation ready
 - [x] public docs do not contain local absolute paths
 - [x] `python3 docs/build.py` passes
-- [ ] GitHub repo visibility changed to public
+- [x] GitHub repo visibility changed to public
