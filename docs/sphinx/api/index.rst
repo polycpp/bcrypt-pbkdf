@@ -1,8 +1,9 @@
 API reference
 =============
 
-The complete public surface of bcrypt-pbkdf, generated from the Doxygen
-comments in the public headers under ``include/polycpp/bcrypt_pbkdf/``.
+The public surface of bcrypt-pbkdf. Prefer the umbrella include
+``#include <polycpp/bcrypt_pbkdf.hpp>`` for all public API; detail headers
+are internal.
 
 Module index
 ------------
@@ -10,6 +11,7 @@ Module index
 .. toctree::
    :maxdepth: 1
 
+   public_include
    bcrypt_pbkdf
    error
 

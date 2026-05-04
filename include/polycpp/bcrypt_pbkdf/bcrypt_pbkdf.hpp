@@ -7,6 +7,10 @@
 #include <cstdint>
 #include <string>
 
+/**
+ * @namespace polycpp::bcrypt_pbkdf
+ * @brief OpenBSD bcrypt_pbkdf compatibility functions, constants, and errors.
+ */
 namespace polycpp::bcrypt_pbkdf {
 
 /**
@@ -72,8 +76,9 @@ inline constexpr std::size_t MAX_SALTLEN = std::size_t{1} << 20;
  * partial output buffer.
  *
  * @param password Byte sequence used as the password input. Must be
- *                 non-empty. Treated as opaque bytes — no NUL handling,
- *                 no UTF-16 re-encoding.
+ *                 non-empty. Treated as opaque bytes; embedded NULs are
+ *                 part of the password and no encoding conversion or
+ *                 Unicode normalization is performed.
  * @param salt     Byte sequence used as the salt input. Must be
  *                 non-empty and no larger than `MAX_SALTLEN` bytes.
  * @param rounds   Number of bcrypt rounds. Must be at least 1. OpenSSH
@@ -86,16 +91,20 @@ inline constexpr std::size_t MAX_SALTLEN = std::size_t{1} << 20;
  * @throws PbkdfError if any input is out of range. The thrown exception
  *         carries a typed `PbkdfErrorCode` so callers can branch on the
  *         specific failure mode without parsing the message string.
- *         Validation runs in this order, returning on the first failure:
- *         - `rounds < 1`              -> `PbkdfErrorCode::InvalidRounds`
- *         - `password.length() == 0`  -> `PbkdfErrorCode::EmptyPassword`
- *         - `salt.length() == 0`      -> `PbkdfErrorCode::EmptySalt`
- *         - `keylen == 0`             -> `PbkdfErrorCode::EmptyKeylen`
- *         - `keylen > MAX_KEYLEN`     -> `PbkdfErrorCode::KeylenTooLarge`
- *         - `salt.length() > MAX_SALTLEN` -> `PbkdfErrorCode::SaltTooLarge`
- *         All checks happen before any allocation or hashing, so a
- *         throw never leaks a partial output buffer or partial keying
- *         material.
+ *
+ * Validation order before allocation or hashing:
+ *
+ * @code
+ * rounds < 1                    -> PbkdfErrorCode::InvalidRounds
+ * password.length() == 0        -> PbkdfErrorCode::EmptyPassword
+ * salt.length() == 0            -> PbkdfErrorCode::EmptySalt
+ * keylen == 0                   -> PbkdfErrorCode::EmptyKeylen
+ * keylen > MAX_KEYLEN           -> PbkdfErrorCode::KeylenTooLarge
+ * salt.length() > MAX_SALTLEN   -> PbkdfErrorCode::SaltTooLarge
+ * @endcode
+ *
+ * The function stops at the first failure. A throw never leaks a partial
+ * output buffer or partial keying material.
  *
  * @par Thread safety
  * Reentrant. The Blowfish keystream pointer is per-instance, so
@@ -115,7 +124,8 @@ inline constexpr std::size_t MAX_SALTLEN = std::size_t{1} << 20;
  * exception unwinding — using `polycpp::ssl::secureZero`, which
  * delegates to `OPENSSL_cleanse` and is documented not to be elided
  * by the optimizer. The returned `polycpp::Buffer` is the caller's;
- * the caller is responsible for scrubbing it when no longer needed.
+ * scrub it with `polycpp::ssl::secureZero(key.data(), key.length())`
+ * from `<polycpp/ssl/memory.hpp>` when no longer needed.
  *
  * @par Example: derive an OpenSSH cipher key + IV
  * @code{.cpp}
@@ -137,15 +147,13 @@ polycpp::Buffer pbkdf(const polycpp::Buffer& password,
                       std::uint32_t keylen);
 
 /**
- * @brief Convenience overload that accepts ASCII-style passwords as
- *        `std::string`.
+ * @brief Convenience overload that accepts password bytes in `std::string`.
  *
  * Treats the string's bytes as the password. **No re-encoding is
  * performed** — the bytes are passed through unchanged, including
- * embedded NULs. If the string is in some other encoding (e.g.
- * UTF-16), the caller must convert first; `bcrypt_pbkdf` is
- * byte-oriented and will produce different keys for differently
- * encoded representations of the "same" password.
+ * embedded NULs. `bcrypt_pbkdf` is byte-oriented and will produce
+ * different keys for different encodings or Unicode normalization forms
+ * of the same displayed password.
  *
  * Use this overload when the password is already a `std::string` and
  * you want to skip the explicit `polycpp::Buffer::from` wrap.

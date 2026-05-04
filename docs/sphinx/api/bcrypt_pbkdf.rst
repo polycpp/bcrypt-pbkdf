@@ -2,6 +2,8 @@
 =========================================
 
 The ``pbkdf`` and ``bcryptHash`` functions plus the public numeric constants.
+Most callers should include ``<polycpp/bcrypt_pbkdf.hpp>`` instead of this
+module header directly.
 
 Functions
 ---------

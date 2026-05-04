@@ -13,8 +13,8 @@
  * password and salt by combining Blowfish (in OpenBSD's special expansion
  * mode) with SHA-512 as the inner hash and the constant string
  * `"OxychromaticBlowfishSwatDynamite"` as the cipher input. It is the key
- * derivation function OpenSSH `ssh-keygen` uses to encrypt new-format
- * private keys.
+ * derivation function OpenSSH `ssh-keygen` uses to derive cipher material
+ * for encrypted new-format private keys.
  *
  * @par Compatibility
  * Output is byte-identical to the upstream npm `bcrypt-pbkdf@1.0.2`
